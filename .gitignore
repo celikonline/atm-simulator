@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.vercel/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.env
+.env.local
+.DS_Store
