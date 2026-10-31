@@ -6,6 +6,8 @@ function Led({ on }) {
 
 export default function AtmMachine({
   children,
+  brand,
+  terminalId,
   device,
   cardIn,
   cardOut,
@@ -28,7 +30,7 @@ export default function AtmMachine({
   return (
     <div className="atm" aria-label="ATM önden görünüm">
       <div className="atm-head">
-        <span className="atm-brand">DEMO BANK</span>
+        <span className="atm-brand">{brand.toLocaleUpperCase('tr-TR')}</span>
         <span className="atm-model">SelfServ 84</span>
       </div>
 
@@ -45,8 +47,10 @@ export default function AtmMachine({
           <div className="slot thin">
             {receipt && (
               <button type="button" className="receipt" onClick={onTakeReceipt} title="Fişi al">
-                <strong>DEMO BANK</strong>
-                <span>ATM00684 · {receipt.date}</span>
+                <strong>{brand.toLocaleUpperCase('tr-TR')}</strong>
+                <span>
+                  {terminalId} · {receipt.date}
+                </span>
                 <span>{receipt.card}</span>
                 <hr />
                 {receipt.lines.map(([k, v]) => (

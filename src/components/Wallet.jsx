@@ -1,6 +1,6 @@
-const PINS = { '4543-0001': '1234', '9792-0042': '4321', '5170-7788': '0000' }
+const PINS = { '4543-0001': '1234', '9792-0042': '4321', '5170-7788': '0000', '5400-3311': '2580' }
 
-export default function Wallet({ cards, active, retained, disabled, onInsert }) {
+export default function Wallet({ cards, active, retained, disabled, terminalBank, onInsert }) {
   return (
     <div className="wallet">
       <p className="wallet-title">Cüzdan · takmak için bir karta tıklayın</p>
@@ -8,24 +8,25 @@ export default function Wallet({ cards, active, retained, disabled, onInsert }) 
         {cards.map((c) => {
           const isRetained = retained[c.id]
           const inUse = active === c.id
+          const credit = c.type === 'credit'
           return (
             <button
               type="button"
               key={c.id}
-              className={`plastic ${c.scheme.toLowerCase()} ${inUse ? 'in-use' : ''}`}
+              className={`plastic ${credit ? 'credit' : c.scheme.toLowerCase()} ${inUse ? 'in-use' : ''}`}
               disabled={disabled || isRetained || inUse}
               onClick={() => onInsert(c)}
             >
               <span className="plastic-top">
                 <span className="chip-ic" aria-hidden="true" />
-                <span className="plastic-scheme">{c.scheme}</span>
+                <span className="plastic-scheme">{credit ? `KREDİ · ${c.scheme}` : c.scheme}</span>
               </span>
               <span className="plastic-pan">{c.pan_masked}</span>
               <span className="plastic-foot">
                 <span>{c.holder}</span>
                 <span className="plastic-pin">{isRetained ? 'ALIKONULDU' : inUse ? 'ATM’DE' : `PIN ${PINS[c.id]}`}</span>
               </span>
-              {c.issuer === 'other' && <span className="plastic-flag">Başka banka</span>}
+              {c.bank !== terminalBank && <span className="plastic-flag">{c.bank_name}</span>}
             </button>
           )
         })}

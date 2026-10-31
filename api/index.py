@@ -44,6 +44,12 @@ def cards():
     return jsonify([host._public_card(cid) for cid in host.CARDS])
 
 
+@app.get("/api/payees")
+def payees():
+    # Ekranda kolay seçim için demo IBAN'lar (gerçek ATM'de IBAN tuş takımıyla girilir)
+    return jsonify([{"iban": iban, "bank": host.BANKS[iban[4:9]]} for iban in host.RECIPIENTS])
+
+
 @app.post("/api/card/read")
 def card_read():
     return jsonify(host.card_info(body().get("card_id", "")))
@@ -88,6 +94,70 @@ def bill_pay():
 def cheque():
     b = body()
     return jsonify(host.cheque(token(), float(b.get("amount", 0)), str(b.get("cheque_no", "")), terminal()))
+
+
+@app.post("/api/transfer/inquiry")
+def transfer_inquiry():
+    b = body()
+    return jsonify(host.transfer_inquiry(token(), str(b.get("iban", "")), float(b.get("amount", 0)), b.get("ledger", {}), terminal()))
+
+
+@app.post("/api/transfer")
+def transfer():
+    b = body()
+    return jsonify(host.transfer(token(), str(b.get("iban", "")), float(b.get("amount", 0)), b.get("ledger", {}), terminal()))
+
+
+@app.post("/api/credit/inquiry")
+def credit_inquiry():
+    b = body()
+    return jsonify(host.credit_inquiry(token(), b.get("credit_card_id", ""), b.get("credit_ledger", {}), terminal()))
+
+
+@app.post("/api/credit/pay")
+def credit_pay():
+    b = body()
+    return jsonify(host.credit_pay(token(), b.get("credit_card_id", ""), float(b.get("amount", 0)), b.get("ledger", {}), b.get("credit_ledger", {}), terminal()))
+
+
+@app.post("/api/reversal")
+def reversal():
+    b = body()
+    return jsonify(host.reverse(b.get("reversal_token", ""), str(b.get("reason", "")), b.get("ledger", {}), terminal(), bool(b.get("repeat"))))
+
+
+@app.post("/api/settlement")
+def settlement():
+    b = body()
+    return jsonify(host.settlement(terminal(), b.get("totals", {}), int(b.get("batch", 1)), b.get("records", [])))
+
+
+@app.post("/api/clearing")
+def clearing():
+    return jsonify(host.clearing(body().get("records", [])))
+
+
+@app.post("/api/qr/create")
+def qr_create():
+    return jsonify(host.qr_create(terminal()))
+
+
+@app.post("/api/qr/approve")
+def qr_approve():
+    b = body()
+    return jsonify(host.qr_approve(b.get("qr", ""), b.get("card_id", ""), b.get("op", ""), int(b.get("amount", 0)), b.get("ledger", {})))
+
+
+@app.post("/api/qr/withdraw")
+def qr_withdraw():
+    b = body()
+    return jsonify(host.qr_withdraw(b.get("approval", ""), b.get("ledger", {}), b.get("cassettes", {}), terminal()))
+
+
+@app.post("/api/qr/deposit")
+def qr_deposit():
+    b = body()
+    return jsonify(host.qr_deposit(b.get("approval", ""), b.get("notes", {}), int(b.get("suspect", 0)), b.get("ledger", {}), b.get("cassettes", {}), terminal()))
 
 
 if __name__ == "__main__":

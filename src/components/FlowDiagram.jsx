@@ -3,12 +3,15 @@ const NODES = {
   atm: { x: 70, y: 150, label: 'ATM', sub: 'APTRA + XFS' },
   switch: { x: 210, y: 150, label: 'ATM Switch', sub: 'NDC / ISO 8583' },
   bkm: { x: 350, y: 48, label: 'BKM', sub: 'Bankalar arası' },
-  issuer: { x: 500, y: 48, label: 'Karşı Banka', sub: 'Kartı çıkaran' },
+  issuer: { x: 500, y: 48, label: 'Karşı Banka', sub: 'Issuer / alıcı' },
+  fast: { x: 350, y: 118, label: 'FAST / EFT', sub: 'TCMB ödeme sist.' },
   interapi: { x: 350, y: 190, label: 'InterAPI', sub: 'Entegrasyon' },
   hsm: { x: 500, y: 118, label: 'HSM', sub: 'PIN doğrulama' },
   fraud: { x: 500, y: 182, label: 'Fraud', sub: 'Risk skoru' },
   core: { x: 500, y: 246, label: 'Core Banking', sub: 'Hesap / defter' },
+  cards: { x: 500, y: 310, label: 'Kart Sistemi', sub: 'Limit / borç' },
   biller: { x: 350, y: 290, label: 'Fatura Kurumu', sub: 'Kurum API' },
+  mobile: { x: 190, y: 268, label: 'Mobil Banka', sub: 'Uygulama + API' },
 }
 const EDGES = [
   ['atm', 'switch'],
@@ -19,6 +22,10 @@ const EDGES = [
   ['interapi', 'fraud'],
   ['interapi', 'core'],
   ['interapi', 'biller'],
+  ['interapi', 'cards'],
+  ['interapi', 'fast'],
+  ['fast', 'issuer'],
+  ['mobile', 'interapi'],
 ]
 const W = 116
 const H = 44
@@ -37,7 +44,7 @@ function edgePath(a, b) {
   return `M${x1},${p.y} C${mx},${p.y} ${mx},${q.y} ${x2},${q.y}`
 }
 
-export default function FlowDiagram({ hops, foreign }) {
+export default function FlowDiagram({ hops, meta }) {
   const { list, active } = hops
   const key = (a, b) => `${a}>${b}`
   const done = new Set(list.slice(0, Math.max(active, 0)).map((h) => key(h.from, h.to)))
@@ -48,7 +55,7 @@ export default function FlowDiagram({ hops, foreign }) {
     <div className="panel flow">
       <div className="panel-head">
         <h3>Mesaj akışı</h3>
-        <span className="panel-meta">{foreign ? 'Başka banka kartı · BKM rotası' : 'Kendi kartı · InterAPI rotası'}</span>
+        <span className="panel-meta">{meta}</span>
       </div>
       <div className="flow-now" aria-live="polite">
         {current ? (
@@ -67,7 +74,7 @@ export default function FlowDiagram({ hops, foreign }) {
         )}
       </div>
       <div className="flow-scroll">
-        <svg viewBox="0 0 570 320" className="flow-svg" role="img" aria-label="ATM ile banka sistemleri arasındaki mesaj akışı">
+        <svg viewBox="0 0 570 340" className="flow-svg" role="img" aria-label="ATM ile banka sistemleri arasındaki mesaj akışı">
           <defs>
             <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
               <path d="M0,0 L8,4 L0,8 z" fill="var(--line-strong)" />
