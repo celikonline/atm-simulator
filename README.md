@@ -6,6 +6,20 @@ bankanın sistemlerinde nasıl ilerlediğini görsel olarak gösteren simülatö
 - **Ön yüz:** React (Vite). ATM ekranı, EPP tuş takımı, kart okuyucu, para çıkışı/girişi, fiş yazıcı.
 - **Arka uç:** Python (Flask), Vercel Serverless Function olarak çalışır. ATM Switch → InterAPI → HSM / Fraud / Core Banking / Fatura Kurumu ve başka banka kartları için BKM rotasını simüle eder.
 
+## Ekran görüntüleri
+
+**İşlem sürerken:** InterAPI → Core Banking adımı mesaj akışında canlandırılıyor.
+
+![İşlem sürerken mesaj akışı](docs/preview.webp)
+
+**Para çekme tamamlandı:** fiş yazdırıldı, kaset ve hesap bakiyesi güncellendi, olay günlüğünde XFS komutları görünüyor.
+
+![Para çekme sonrası fiş ve olay günlüğü](docs/p2.webp)
+
+**Mobil görünüm:**
+
+<img src="docs/p3.webp" alt="Mobil görünüm" width="320">
+
 ## Neler görülebiliyor?
 
 | İşlem | Cihaz (XFS) olayları | Host tarafı |
@@ -64,6 +78,16 @@ Testler: `pytest -q`
    `.github/workflows/ci.yml` aynı anda Python testlerini ve React build'ini çalıştırır.
 
 ## Mimari notlar
+
+### Gerçek ATM mimarisi ve sertifikasyonlar
+
+Simülatörün modellediği yapının gerçek dünyadaki karşılığı: ATM donanımı ve yazılım katmanları,
+banka/host sistemleri, bileşen bazında gerekli sertifikalar (EMV, PCI PTS, PCI DSS, XFS vb.) ve
+ATM yaşam döngüsü.
+
+![ATM sistem mimarisi ve sertifikasyon genel görünümü](docs/atm-architecture-certifications.webp)
+
+### Bu projede
 
 - Vercel fonksiyonları durumsuzdur. Bu yüzden hesap bakiyeleri ve kaset sayıları tarayıcıda tutulur,
   her istekte hosta gönderilir; host kuralları uygular ve yeni durumu döner. Gerçek sistemde bu
