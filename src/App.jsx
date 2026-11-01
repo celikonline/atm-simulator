@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { api, money } from './api'
+import { useRoute } from './route'
+import TopNav from './components/TopNav'
 import AtmMachine from './components/AtmMachine'
 import Screen from './components/Screen'
 import FlowDiagram from './components/FlowDiagram'
@@ -8,6 +10,8 @@ import Wallet from './components/Wallet'
 import Phone from './components/Phone'
 import StatusPanel, { CAPACITY } from './components/StatusPanel'
 import ServicePanel from './components/ServicePanel'
+
+const Training = lazy(() => import('./training/Training.jsx'))
 
 // Banka defteri ve kaset durumu istemcide tutulur (Vercel fonksiyonları durumsuz).
 const INITIAL_LEDGERS = {
@@ -69,6 +73,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const now = () => new Date().toLocaleTimeString('tr-TR')
 
 export default function App() {
+  const route = useRoute()
   const [cards, setCards] = useState([])
   const [screen, setScreen] = useState('idle')
   const [card, setCard] = useState(null)
@@ -760,6 +765,7 @@ export default function App() {
 
   const keyHandler = useRef()
   keyHandler.current = (e) => {
+    if (route.view !== 'sim') return // eğitim sayfasındayken tuş takımı dinlenmez
     if (/^\d$/.test(e.key)) onDigit(e.key)
     else if (e.key === 'Enter') onEnter()
     else if (e.key === 'Backspace') setInput('')
@@ -918,144 +924,153 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">NCR SelfServ 84 · Terminal {terminalId}</p>
-          <h1>ATM Simülatörü</h1>
-        </div>
-        <div className="topbar-actions">
-          <label className="terminal-pick">
-            <span>ATM</span>
-            <select
-              value={terminalId}
-              disabled={screen !== 'idle'}
-              onChange={(e) => switchTerminal(e.target.value)}
-              title={screen !== 'idle' ? 'Terminal yalnızca boşta değiştirilebilir' : undefined}
-            >
-              {Object.entries(TERMINALS).map(([id, t]) => (
-                <option key={id} value={id}>
-                  {t.name} · {id}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="button" className="ghost" onClick={resetAll}>
-            Simülasyonu sıfırla
-          </button>
-        </div>
-      </header>
-
-      {hostError && (
-        <div className="banner" role="alert">
-          {hostError}
-          <button type="button" className="ghost small" onClick={() => setHostError(null)}>
-            Kapat
-          </button>
-        </div>
+      <TopNav route={route} />
+      {route.view === 'training' && (
+        <Suspense fallback={<p className="tr-loading">Yükleniyor…</p>}>
+          <Training topicId={route.topic} />
+        </Suspense>
       )}
+      {/* Simülatör eğitim sayfasındayken yalnızca gizlenir; böylece ATM durumu kaybolmaz */}
+      <div hidden={route.view !== 'sim'}>
+        <header className="topbar">
+          <div>
+            <p className="eyebrow">NCR SelfServ 84 · Terminal {terminalId}</p>
+            <h1>ATM Simülatörü</h1>
+          </div>
+          <div className="topbar-actions">
+            <label className="terminal-pick">
+              <span>ATM</span>
+              <select
+                value={terminalId}
+                disabled={screen !== 'idle'}
+                onChange={(e) => switchTerminal(e.target.value)}
+                title={screen !== 'idle' ? 'Terminal yalnızca boşta değiştirilebilir' : undefined}
+              >
+                {Object.entries(TERMINALS).map(([id, t]) => (
+                  <option key={id} value={id}>
+                    {t.name} · {id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="button" className="ghost" onClick={resetAll}>
+              Simülasyonu sıfırla
+            </button>
+          </div>
+        </header>
 
-      <main className="layout">
-        <section className="col-machine">
-          <AtmMachine
-            brand={terminal.name}
-            terminalId={terminalId}
-            device={device}
-            cardIn={!!card && !cardOut}
-            cardOut={cardOut}
-            cashOut={cashOut}
-            receipt={receipt}
-            onTakeCard={takeCard}
-            onTakeCash={takeCash}
-            onTakeReceipt={() => setReceipt(null)}
-            onDigit={onDigit}
-            onEnter={onEnter}
-            onClear={() => setInput('')}
-            onCancel={onCancel}
-          >
-            <Screen
-              screen={screen}
-              card={card}
-              input={input}
-              notice={notice}
-              draft={draft}
-              actions={actions}
-              terminal={terminal}
-              onUs={onUs}
-              fees={fees}
-              ledger={ledger}
-              service={service}
-              payees={payees.filter((p) => p.iban !== card?.account)}
+        {hostError && (
+          <div className="banner" role="alert">
+            {hostError}
+            <button type="button" className="ghost small" onClick={() => setHostError(null)}>
+              Kapat
+            </button>
+          </div>
+        )}
+
+        <main className="layout">
+          <section className="col-machine">
+            <AtmMachine
+              brand={terminal.name}
+              terminalId={terminalId}
+              device={device}
+              cardIn={!!card && !cardOut}
+              cardOut={cardOut}
+              cashOut={cashOut}
+              receipt={receipt}
+              onTakeCard={takeCard}
+              onTakeCash={takeCash}
+              onTakeReceipt={() => setReceipt(null)}
+              onDigit={onDigit}
+              onEnter={onEnter}
+              onClear={() => setInput('')}
+              onCancel={onCancel}
+            >
+              <Screen
+                screen={screen}
+                card={card}
+                input={input}
+                notice={notice}
+                draft={draft}
+                actions={actions}
+                terminal={terminal}
+                onUs={onUs}
+                fees={fees}
+                ledger={ledger}
+                service={service}
+                payees={payees.filter((p) => p.iban !== card?.account)}
+              />
+            </AtmMachine>
+            <Wallet
+              cards={cards}
+              active={card?.id}
+              retained={retained}
+              disabled={screen !== 'idle'}
+              terminalBank={terminal.bank}
+              onInsert={insertCard}
             />
-          </AtmMachine>
-          <Wallet
-            cards={cards}
-            active={card?.id}
-            retained={retained}
-            disabled={screen !== 'idle'}
-            terminalBank={terminal.bank}
-            onInsert={insertCard}
-          />
-          <Phone
-            cards={cards}
-            phone={phone}
-            canScan={screen === 'qr'}
-            qrRef={draft.qr?.ref}
-            onChange={(patch) => setPhone((p) => ({ ...p, ...patch, message: null }))}
-            onScan={scanQr}
-            onApprove={approveQr}
-            onBack={() => setPhone((p) => ({ ...p, ...PHONE_HOME }))}
-          />
-        </section>
+            <Phone
+              cards={cards}
+              phone={phone}
+              canScan={screen === 'qr'}
+              qrRef={draft.qr?.ref}
+              onChange={(patch) => setPhone((p) => ({ ...p, ...patch, message: null }))}
+              onScan={scanQr}
+              onApprove={approveQr}
+              onBack={() => setPhone((p) => ({ ...p, ...PHONE_HOME }))}
+            />
+          </section>
 
-        <section className="col-insight">
-          <FlowDiagram
-            hops={hops}
-            meta={
-              draft.mode === 'qr'
-                ? 'Kartsız · QR + mobil onay'
-                : !card
-                  ? `${terminal.name} ATM'si`
-                  : onUs
-                    ? `On-us · ${card.bank_name} kartı, ${terminal.name} ATM'si`
-                    : `Not-on-us · ${card.bank_name} kartı, BKM rotası`
-            }
-          />
-          <StatusPanel
-            cassettes={cassettes}
-            terminalId={terminalId}
-            ledgers={ledgers}
-            cards={cards}
-            active={accountId}
-          />
-          <ServicePanel
-            faults={faults}
-            onFault={(k, v) => setFaults((f) => ({ ...f, [k]: v }))}
-            onPaperOut={() => {
-              updService((s) => ({ ...s, ptr: 'paper-out' }))
-              addLog('xfs', 'WFS_SRVE_PTR_PAPERTHRESHOLD', 'Fiş kağıdı bitti · fişsiz çalışma')
-            }}
-            service={service}
-            cassettes={cassettes}
-            terminalId={terminalId}
-            maintenance={maintenance}
-            canToggle={maintenance || screen === 'idle'}
-            busy={screen === 'processing' || backOfficeBusy}
-            onToggleMaintenance={toggleMaintenance}
-            onRefill={refill}
-            onClearFaults={clearFaults}
-            onEmptyBins={emptyBins}
-            onSettle={settle}
-            onFlushSaf={flushSaf}
-            backOffice={(screen === 'idle' || screen === 'maintenance') && !backOfficeBusy}
-            hostBook={hostBook}
-            clearing={clearing}
-            onClearing={runClearing}
-            cards={cards}
-            journal={journal.filter((e) => e.terminal === terminalId)}
-          />
-          <EventLog entries={log} />
-        </section>
-      </main>
+          <section className="col-insight">
+            <FlowDiagram
+              hops={hops}
+              meta={
+                draft.mode === 'qr'
+                  ? 'Kartsız · QR + mobil onay'
+                  : !card
+                    ? `${terminal.name} ATM'si`
+                    : onUs
+                      ? `On-us · ${card.bank_name} kartı, ${terminal.name} ATM'si`
+                      : `Not-on-us · ${card.bank_name} kartı, BKM rotası`
+              }
+            />
+            <StatusPanel
+              cassettes={cassettes}
+              terminalId={terminalId}
+              ledgers={ledgers}
+              cards={cards}
+              active={accountId}
+            />
+            <ServicePanel
+              faults={faults}
+              onFault={(k, v) => setFaults((f) => ({ ...f, [k]: v }))}
+              onPaperOut={() => {
+                updService((s) => ({ ...s, ptr: 'paper-out' }))
+                addLog('xfs', 'WFS_SRVE_PTR_PAPERTHRESHOLD', 'Fiş kağıdı bitti · fişsiz çalışma')
+              }}
+              service={service}
+              cassettes={cassettes}
+              terminalId={terminalId}
+              maintenance={maintenance}
+              canToggle={maintenance || screen === 'idle'}
+              busy={screen === 'processing' || backOfficeBusy}
+              onToggleMaintenance={toggleMaintenance}
+              onRefill={refill}
+              onClearFaults={clearFaults}
+              onEmptyBins={emptyBins}
+              onSettle={settle}
+              onFlushSaf={flushSaf}
+              backOffice={(screen === 'idle' || screen === 'maintenance') && !backOfficeBusy}
+              hostBook={hostBook}
+              clearing={clearing}
+              onClearing={runClearing}
+              cards={cards}
+              journal={journal.filter((e) => e.terminal === terminalId)}
+            />
+            <EventLog entries={log} />
+          </section>
+        </main>
+      </div>
     </div>
   )
 }

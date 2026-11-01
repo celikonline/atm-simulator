@@ -1,5 +1,17 @@
 # ATM Simülatörü
 
+## LinkedIn paylaşım taslağı
+
+Bir ATM işlemi, kartı takıp para çekmekten çok daha fazlası. Bu projede, ATM'nin ön yüzündeki cihaz olaylarından bankacılık sistemleri arasındaki mesaj akışına kadar uzanan süreci etkileşimli bir simülatörde bir araya getirdim.
+
+React ve Flask ile geliştirdiğim simülatörde para çekme ve yatırma, QR ile kartsız işlem, fatura ödeme, para transferi, başka banka kartları için BKM rotası ve teknisyen işlemleri bulunuyor. XFS cihaz komutları ile ISO 8583 mesajları da adım adım izlenebiliyor. Arıza senaryoları sayesinde para sıkışması, yanıt kaybı, iptal (reversal) ve gün sonu mutabakatının nasıl ilerlediği de görülebiliyor.
+
+Amacım, normalde arka planda kalan ATM ve banka sistemleri arasındaki işleyişi anlaşılır ve keşfedilebilir hale getirmekti. Proje; ödeme sistemleri, ATM yazılımları ve bankacılık entegrasyonlarına merak duyanlar için küçük bir uygulamalı çalışma.
+
+Geri bildirim ve önerilere açığım.
+
+#React #Python #Bankacılık #ÖdemeSistemleri #ATM #Fintech #ISO8583
+
 NCR SelfServ 84 (6684) benzeri bir ATM'nin önden görünümünü ve işlemlerin arka planda
 bankanın sistemlerinde nasıl ilerlediğini görsel olarak gösteren simülatör.
 
@@ -153,6 +165,21 @@ gün sonu tekrarlanır ve mutabakat tutar.
 | KREDİ · MASTERCARD 5400 … 3311 | 2580 | Ayşe Yılmaz'ın Demo Bank kredi kartı (limit 40.000 TL, borç 8.750 TL) |
 
 20 TL kaseti bilerek az doldurulmuştur; 60, 70 gibi tutarlarda kaset planlamasını izleyebilirsiniz.
+
+## Eğitim menüsü
+
+Üstteki **Eğitim** menüsünde simülatörün arkasındaki konular dört grupta anlatılır:
+
+- **Mesajlaşma standartları:** ISO 8583, ISO 20022, EMV
+- **ATM cihaz katmanı:** XFS ve versiyonları, ATM cihaz sürücüleri
+- **Sistem mimarisi:** Switch uygulaması, ATM host ve transaction yönetimi, QR ile kartsız işlem (mobil)
+- **Yazılım ve veri:** ACID, OOP, SDLC
+
+Sayfalarda sequence diyagramları, akış şemaları, örnek senaryolar ve etkileşimli bölümler (MTI/bitmap çözücü, terminal eylem analizi, iki ATM yarışı, ücret stratejisi, QR çözücü, süreç modeli seçici…) vardır. Senaryoların çoğunun altında simülatörde nasıl yeniden üretileceğini anlatan bir kutu bulunur. Simülatör durumu eğitim sayfasına geçince kaybolmaz.
+
+Sayfalardaki sürüm, tarih ve standart bilgilerinin bir kısmı genel bilgiye dayanır; emin olunmayan yerler "doğrulayın" notuyla işaretlidir. Gerçek bir entegrasyonda ilgili şartnameyi esas alın.
+
+Yeni konu eklemek için `src/training/` altına bir sayfa bileşeni yazıp `src/training/topics.js` listesine bir satır eklemek yeterlidir; menü, konu dizini ve sayfa içi içindekiler otomatik oluşur.
 
 ## Yerelde çalıştırma
 
